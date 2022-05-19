@@ -33,12 +33,14 @@ public class gui {
         status_lbl.setBounds(480,680,500,30);
         status_lbl.setFont(new Font("Verdana", Font.PLAIN, 16));
         req_txt=new JTextArea();
+        req_txt.setFont(new Font("segueUI",Font.PLAIN,16));
         req_txt.setEditable(false);
          scroll = new JScrollPane (req_txt,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scroll.setBounds(30,130,500,500);
         scroll.setFont(new Font("Verdana", Font.BOLD, 24));
         res_txt=new JTextArea();
+        res_txt.setFont(new Font("segueUI",Font.PLAIN,16));
         res_txt.setEditable(false);
          scroll0 = new JScrollPane (res_txt,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
