@@ -1,5 +1,7 @@
 package Application;
 
+import javax.swing.*;
+import javax.tools.Tool;
 import java.io.*;
 import java.net.*;
 import java.sql.*;
@@ -12,9 +14,130 @@ public class event extends gui{
     Socket msgS,subS;
     Connection con;
     ArrayList req,res;
-    static int port_attendance=5555,port_signIn=2222,port_signUp=3333;
+    static int port_attendance=5678,port_signIn=2345,port_signUp=3456;
+    static String emailHost="localhost";
+    static int emailPort=5555;
 
-    event(){
+
+//sending emails to the reported students:-
+    void sendReport(String to){
+        try {
+            Connection con=DriverManager.getConnection("jdbc:mysql://localhost/emailSystem","root","root");
+            Statement st=con.createStatement();
+            String sql="INSERT INTO email(sender,receiver,msg) VALUES ( '@NCTU','"+ to+"', 'Warning you have exceeded the limitation of absent in university!Are you ok son?');";
+            st.executeUpdate(sql);
+            con.close();
+        }catch (Exception er){
+            er.printStackTrace();
+        }
+        System.out.println("method executed!");
+    }
+
+    //inserting email addresses into tables in DB:-
+    void addMails() throws SQLException {
+        Connection con=DriverManager.getConnection("jdbc:mysql://localhost/emailSystem","root","root");
+        Statement st=con.createStatement();
+        String arr[]=
+                {"AhmedAshraf",//1
+                "AhmedKhaled",//2
+                "AhmedSalama",//3
+                "ayaAyman",//4
+                "AyaAlaa",//5
+                "PeterBassem",//6
+                "JosephMagid",//7
+                "HabibaNagi",//8
+                "HassanMuhammed",//9
+                "KhalidMuhammad",//10
+                "AbdulRahmanOsama",//11
+                "AbdulRahmanRajab",//12
+                "AbdullahAsher",//13
+                "KarimAhmed",//14
+                "KarimTarek",//15
+                "MazenTarek",//16
+                "MuhammadAhmadMuhammad",//17
+                "MohammedHossamFouad",//18
+                "MuhammadHusamMuhammad",//19
+                "MuhammadHisham",//20
+                "MuhammadYusuf",//21
+                "MahmoudMohamedFakir",//22
+                "MustafaMorsi",//23
+                "HebaGomaa",//24
+                "HamsaSameh",//25
+                "WesamAhmed",//26
+                "YasminAhmed",//27
+                "YasmineMagdy",//28
+                "YoussefAhmed",//29
+                "YoussefTariqHussein",//30
+                "YoussefTariqAbdelMoneim",//31
+                "YoussefAbdullah",//32
+         };
+
+        for(String a:arr){
+            String sql="INSERT INTO auth(username,password) VALUES ('"+ a +"','123' );";
+            st.executeUpdate(sql);
+        }
+
+        System.out.println("emails added successfully!");
+    }
+
+
+
+
+    String printPercentage(){
+        String _final="";
+        String sql="SELECT subject, (Select COUNT(*) from atend) as t , count(*) as v from atend where isAttended=1 group by subject;";
+        try{
+            Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/attendance","root","root");
+            Statement st=con.createStatement();
+            ResultSet rs=st.executeQuery(sql);
+            while(rs.next()){
+                String subject=rs.getString(1);
+                float t=rs.getInt(2);
+                float v=rs.getInt(3);
+                _final+="The Total Percentage Of Attendance for :"+subject+" is "+(v/t)*100+"%\n";
+            }
+        }catch (Exception er){
+            er.printStackTrace();
+        }
+        return _final;
+    }
+
+    void receiveAttend(){
+
+        try {
+            String student= tools.receive(ss.accept());
+            String subject=tools.receive(ss.accept());
+            String isAttend=tools.receive(ss.accept());
+
+            req.add("Client-Request : Adding new Attendance!\n\n\n\n\n");
+            req_txt.setText(Arrays.toString(req.toArray()));
+            if(!student.equals("") && !student.equals(null) && !subject.equals("") && !subject.equals(null) && !isAttend.equals("") && !isAttend.equals(null)){
+                if(Integer.parseInt(isAttend)==0){
+                    Thread.sleep(200);
+                    sendReport(student);
+                    System.out.println("entered condition!");
+                }
+                //1)-display the requests and responses into the textAreas:-
+                res.add("Server-Response : Yes!\n\n\n\n\n");
+                res_txt.setText(Arrays.toString(res.toArray()));
+                //2)-Store the data into the sever database:-
+                String query="insert into atend(student,isAttended,subject) values('"+student+"',"+Integer.parseInt(isAttend)+",'"+subject+"');";
+                Statement statement=con.createStatement();
+                statement.executeUpdate(query);
+            }else {
+                res.add("Server-Response : No!\n\n\n\n\n");
+                res_txt.setText(Arrays.toString(res.toArray()));
+            }
+        } catch (Exception ex) {
+            System.out.println("Error attend:"+ex);
+        }
+
+    }
+
+
+    event() throws SQLException {
+        long startTime=System.currentTimeMillis();
+
         tools=new TCP_NET();
         req=new ArrayList<String>();
         res=new ArrayList<String>();
@@ -29,7 +152,8 @@ public class event extends gui{
 
         open_btn.addActionListener(e -> {
             count+=1;
-
+            JOptionPane.showMessageDialog(app, printPercentage(),
+                    "Attendance-Percentage", JOptionPane.PLAIN_MESSAGE);
             Thread HandleData=new Thread(() -> {
                 try {
                     if(ss.isClosed()){
@@ -39,27 +163,7 @@ public class event extends gui{
                     ex.printStackTrace();
                 }
                 while (true){
-                    try {
-                       String msg= tools.receive(ss.accept());
-                       String subject=tools.receive(ss.accept());
-
-                       req.add("Client-Request : Adding new Attendance!\n\n\n\n\n");
-                        req_txt.setText(Arrays.toString(req.toArray()));
-                       if(!msg.equals("") && !msg.equals(null) && !subject.equals("") && !subject.equals(null)){
-                           //1)-display the requests and responses into the textAreas:-
-                            res.add("Server-Response : Yes!\n\n\n\n\n");
-                            res_txt.setText(Arrays.toString(res.toArray()));
-                           //2)-Store the data into the sever database:-
-                            String query="insert into atend(atendance,subject) values('"+msg+"','"+subject+"');";
-                            Statement statement=con.createStatement();
-                            statement.executeUpdate(query);
-                       }else {
-                           res.add("Server-Response : No!\n\n\n\n\n");
-                           res_txt.setText(Arrays.toString(res.toArray()));
-                       }
-                    } catch (Exception ex) {
-                        System.out.println("Error attend:"+ex);
-                    }
+                    receiveAttend(); //receiving each student attendance and store it in database.
                 }
             });
 
@@ -151,7 +255,8 @@ public class event extends gui{
         });
         signUp.start();
 
+        long endTime=System.currentTimeMillis();
 
-
+        System.out.println("Benchmarks:"+(endTime-startTime));
     }
 }

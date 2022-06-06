@@ -1,12 +1,17 @@
 package Application;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.Scanner;
+
 
 public class TCP_NET {
     private Socket s;
@@ -91,5 +96,7 @@ public class TCP_NET {
             dOUT.close();
         }catch (Exception er){}
     }
+
+
 
 }
